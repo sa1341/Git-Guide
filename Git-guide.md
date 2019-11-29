@@ -295,3 +295,122 @@ git checkout -b 생성할 branch 이름 원격 저장소의 branch 이름
 
 그렇기 때문에 브랜치를 추적하고 싶다면 위의 언급한 명령어인 `git checkout -b 생성할브랜치명 원격브랜치명`처럼 해줘어야 합니다.
 `이렇게 하는 이유는 Subversion과는 다르게 git같은 경우는 여러개의 원격저장소를 연결할 수 있고 그중에는 브랜치명이 겹칠 수도 있기 때문으로 보입니다.` 
+
+
+# Git stash 명령어 사용하기
+
+stash 명령어를 배우기 전에 왜 사용해야 되는지 상황을 설명하겠습니다.
+자신이 어떤 작업을 하던 중에 다른 요청이 들어와 하던 작업을 멈추고 잠시 브랜치를 변경해야 할 일이 있다고 합시다. 아직 완료하지 않는 일을 commit하는것은 껄그럽습니다. 이때 stash 기능을 사용하면 됩니다.
+
+![스크린샷 2019-11-29 오후 9 11 10](https://user-images.githubusercontent.com/22395934/69868343-cf6f9680-12ec-11ea-9924-e0a310be3ea7.png)
+
+# Git stash란?
+
+아직 마무리하지 않는 작업을 스택에 잠시 저장할 수 있도록 하는 명령어 입니다. 이를 통해 아직 완료하지 않는 일을 commit하지 않고 나중에 다시 꺼내와 마무리할 수 있습니다.
+
+- git stash 명령을 사용하면 워킹 디렉토리에서 수정한 파일들만 저장합니다.
+
+- stash란 아래에 해당하는 파일들을 보관해두는 장소입니다.
+
+  \* Modified이면서 Tracked 상태인 파일
+      
+      - Tracked 상태인 파일을 수정한 경우
+      - Tracked: 과거에 이미 commit하여 스냅샷에 넣어진 관리 대상 상태의 파일
+
+
+  \*Staging Area에 있는 파일(Staged 상태의 파일)
+      
+      - git add 명령을 실행한 경우
+      - Staged 상태로 만들려면 git add 명령을 실행해야 한다.
+      - git add는 파일을 새로 추적할 때도 사용하고 수정한 파일을 Staged 상태로 만들 때도 사용한다.
+
+
+## 하던 작업 임시로 저장하기
+
+git stash 명령어를 통해 새로운 stash를 스택에 만들어 하던 작업을 임시로 저장합니다.
+
+- 예를 들어, 파일 1개를 수정한다면 아직 commit할게 아니기 때문에 stash에 넣습니다.
+
+![스크린샷 2019-11-29 오후 9 18 42](https://user-images.githubusercontent.com/22395934/69868700-d8149c80-12ed-11ea-814c-f4e79f48ea2c.png)
+
+위의 명령어 git stash를 실행하면 스택에 새로운 stash가 만들어집니다. 이 과정을 통해서 Working directory는 깨끗해집니다.
+
+## stash 목록 확인하기
+
+```java
+git stash list 
+
+stash@{0}: WIP on master: 049d078 added the index file
+```
+
+## stash 적용하기(했던 작업을 다시 가져오기)
+
+```java
+// 가장 최근의 stash를 가져와 적용합니다.
+git stash apply 
+// stash 이름
+git stash apply [stash 이름]
+```
+
+
+![스크린샷 2019-11-29 오후 9 22 11](https://user-images.githubusercontent.com/22395934/69868848-5cffb600-12ee-11ea-977a-b3ce797ea453.png)
+
+
+- 위의 명령어로는 Staged 상태였던 파일을 자동으로 다시 Staged 상태로 만들어 주지 않는다. –index 옵션을 주어야 Staged 상태까지 복원한다. 이를 통해 원래 작업하던 파일의 상태로 돌아올 수 있다.
+
+```java
+git stash apply --index
+```
+
+- index 옵션 유무의 차이
+
+#### git stash apply
+![스크린샷 2019-11-29 오후 9 29 02](https://user-images.githubusercontent.com/22395934/69869119-49088400-12ef-11ea-8a1f-55d34047dc85.png)
+
+#### git stash apply --index
+![스크린샷 2019-11-29 오후 9 29 30](https://user-images.githubusercontent.com/22395934/69869131-57ef3680-12ef-11ea-91f6-de94ddb6a1d2.png)
+
+
+수정했던 파일들을 복원할 때 반드시 stash했을 때와 같은 브랜치일 필요는 없습니다. 만약 다른 작업 중이던 브랜치에 이전의 작업들을 추가했을 때 충돌이 있으면 알려줍니다.
+
+# stash 제거하기
+
+```java
+// 가장 최근의 stash를 제거합니다.
+git stash drop
+
+// stash 이름(ex. stash@{2})에 해당하는 stash를 제거한다.
+git stash drop [stash 이름]
+```
+
+만약 적용과 동시에 스택에 해당 stash를 제거하고 싶으면 아래와 같은 명령어를 사용합니다.
+
+```java
+git stash pop
+```
+
+# stash 되돌리기
+
+실수로 잘못 stash 적용한 것을 되돌리고 싶으면 위의 명령어를 이용합니다.
+
+```java
+// 가장 최근의 stash를 사용하여 패치를 만들고 그것을 거꾸로 적용한다.
+git stash show -p | git apply -R
+// stash 이름(ex. stash@{2})에 해당하는 stash를 이용하여 거꾸로 적용한다.
+git stash show -p [stash 이름] | git apply -R
+```
+
+> TIP alias로 편리하게 사용이 가능합니다.
+
+```java
+git config --global alias.stash-unapply '!git stash show -p | git apply -R'
+git stash apply
+#... work work work
+// alias로 등록한 stash 되돌리기 명령어
+git stash-unapply
+```
+
+
+#### 참조:https://gmlwjd9405.github.io/2018/05/18/git-stash.html
+
+
