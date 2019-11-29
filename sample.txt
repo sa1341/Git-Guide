@@ -1,4 +1,0 @@
-# 깃 연습용
-
-Hello Git
-My name is junyoung 
